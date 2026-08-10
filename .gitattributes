@@ -1,0 +1,24 @@
+# Normalize line endings for everyone (important since you're on Windows —
+# prevents noisy diffs if a collaborator is on Mac/Linux)
+* text=auto eol=lf
+
+# Explicit handling for common types
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Windows batch/cmd files should keep CRLF if you ever add any
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files — don't diff or normalize these
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

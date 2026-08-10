@@ -1,0 +1,43 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+build/
+dist/
+
+# --- Virtual environment ---
+venv/
+env/
+ENV/
+.venv/
+
+# --- Environment variables / secrets ---
+.env
+.env.local
+.env.*.local
+
+# --- LLM response cache (regenerable, not meant to be versioned) ---
+.llm_cache/
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs / caches ---
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Jupyter (if you ever add notebooks) ---
+.ipynb_checkpoints/

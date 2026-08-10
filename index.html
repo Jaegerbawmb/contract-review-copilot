@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Risk Desk — Vendor Contract Review Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F1ECE0;
+    --ink: #201D1A;
+    --ink-soft: #4A453E;
+    --rule: #C9C0AC;
+    --wire-blue: #1F3A5F;
+    --compliant: #5B7553;
+    --non-standard: #C98A2B;
+    --high-risk: #A63D40;
+    --not-addressed: #7A7268;
+
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Source Sans 3', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    padding: 0 0 4rem 0;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---- Masthead ---- */
+  header.masthead {
+    border-bottom: 3px double var(--ink);
+    padding: 2.5rem 0 1.25rem 0;
+    margin-bottom: 2.5rem;
+  }
+  header.masthead .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.9rem;
+  }
+  header.masthead h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 3.2rem);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header.masthead p.tagline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0.35rem 0 0 0;
+  }
+
+  /* ---- Case file (input form) ---- */
+  .sheet {
+    border: 1px solid var(--rule);
+    background: #FBF9F3;
+    padding: 1.75rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .sheet::before {
+    content: "CASE FILE";
+    position: absolute;
+    top: -0.65rem;
+    left: 1.5rem;
+    background: var(--paper);
+    padding: 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.35rem;
+    margin-top: 1.1rem;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 0.6rem 0.7rem;
+    border-radius: 2px;
+  }
+  textarea:focus, input:focus {
+    outline: 2px solid var(--wire-blue);
+    outline-offset: 1px;
+  }
+  #contract-text { min-height: 14rem; resize: vertical; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; }
+
+  details.playbook {
+    margin-top: 1.1rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: #fff;
+  }
+  details.playbook summary {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 0.6rem 0.8rem;
+    cursor: pointer;
+  }
+  .playbook-row { padding: 0 0.8rem 0.8rem 0.8rem; }
+  .playbook-row label { margin-top: 0.8rem; font-size: 0.66rem; }
+  .playbook-row textarea { min-height: 3rem; font-size: 0.85rem; }
+
+  .run-row {
+    margin-top: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  button.stamp {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--ink);
+    border: 2px solid var(--ink);
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+  }
+  button.stamp:hover { background: var(--wire-blue); border-color: var(--wire-blue); }
+  button.stamp:active { transform: scale(0.97); }
+  button.stamp:disabled { opacity: 0.5; cursor: wait; }
+
+  .status { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-soft); }
+  .status.error { color: var(--high-risk); }
+
+  /* ---- Results ---- */
+  #results { display: none; }
+
+  .dek {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.45;
+    color: var(--ink);
+    border-left: 3px solid var(--wire-blue);
+    padding-left: 1.1rem;
+    margin: 0 0 1rem 0;
+  }
+
+  .overall-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    margin-bottom: 2.5rem;
+  }
+  .overall-badge.low { color: var(--compliant); }
+  .overall-badge.medium { color: var(--non-standard); }
+  .overall-badge.high { color: var(--high-risk); }
+
+  h2.section-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+    margin: 0 0 1.25rem 0;
+  }
+
+  .flag-card {
+    position: relative;
+    border: 1px solid var(--rule);
+    background: #FBF9F3;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stamp-badge {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    transform: rotate(-4deg);
+  }
+  .stamp-badge.compliant { color: var(--compliant); }
+  .stamp-badge.non_standard { color: var(--non-standard); }
+  .stamp-badge.high_risk { color: var(--high-risk); }
+  .stamp-badge.not_addressed { color: var(--not-addressed); }
+
+  .flag-card h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: capitalize;
+    margin: 0 6rem 0.6rem 0;
+  }
+  .flag-card p.rationale { margin: 0 0 0.8rem 0; max-width: 85%; }
+  .flag-card .ref {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--wire-blue);
+    border-top: 1px solid var(--rule);
+    padding-top: 0.6rem;
+  }
+
+  .counsels-note {
+    border: 1px solid var(--ink);
+    padding: 1.5rem 1.75rem;
+    margin-top: 2rem;
+    position: relative;
+    background: #FBF9F3;
+  }
+  .counsels-note::before {
+    content: "RECOMMENDED ACTIONS";
+    position: absolute;
+    top: -0.65rem;
+    left: 1.5rem;
+    background: var(--paper);
+    padding: 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+  .counsels-note ul { margin: 0; padding-left: 1.2rem; }
+  .counsels-note li { margin-bottom: 0.5rem; }
+
+  footer.meta {
+footer.meta {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  footer.meta span.audited-yes { color: var(--wire-blue); }
+  footer.meta span.corrected { color: var(--non-standard); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="top-row">
+      <span>Multi-agent contract risk review</span>
+      <span id="dateline"></span>
+    </div>
+    <h1>Risk Desk</h1>
+    <p class="tagline">Vendor contracts, checked against your own playbook.</p>
+  </header>
+
+  <div class="sheet">
+    <label for="contract-text">Contract text</label>
+    <textarea id="contract-text" placeholder="Paste the full contract text here..."></textarea>
+
+    <details class="playbook">
+      <summary>Playbook (your risk thresholds — click to edit)</summary>
+      <div class="playbook-row">
+        <label for="pb-liability">Liability</label>
+        <textarea id="pb-liability"></textarea>
+        <label for="pb-auto-renewal">Auto-renewal</label>
+        <textarea id="pb-auto-renewal"></textarea>
+        <label for="pb-data-handling">Data handling</label>
+        <textarea id="pb-data-handling"></textarea>
+        <label for="pb-termination">Termination</label>
+        <textarea id="pb-termination"></textarea>
+      </div>
+    </details>
+
+    <label for="api-base" style="margin-top:1.4rem;">Backend URL</label>
+    <input type="text" id="api-base" value="http://localhost:8000" />
+
+    <div class="run-row">
+      <button class="stamp" id="run-btn">Run review</button>
+      <span class="status" id="status"></span>
+    </div>
+  </div>
+
+  <div id="results">
+    <p class="dek" id="summary"></p>
+    <div class="overall-badge" id="overall-badge"></div>
+
+    <h2 class="section-label">Risk flags</h2>
+    <div id="flags"></div>
+
+    <div class="counsels-note">
+      <ul id="actions"></ul>
+    </div>
+
+    <footer class="meta" id="run-meta"></footer>
+  </div>
+
+</div>
+
+<script>
+  document.getElementById('dateline').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  const DEFAULT_CONTRACT = `MASTER SERVICES AGREEMENT
+
+This Master Services Agreement ("Agreement") is entered into between
+Acme Cloud Analytics Inc. ("Vendor") and Customer.
+
+1. SERVICES. Vendor shall provide cloud-based data analytics services
+as described in the applicable Order Form.
+
+2. TERM AND RENEWAL. This Agreement shall commence on the Effective
+Date and continue for an initial term of twelve (12) months. Thereafter,
+this Agreement shall automatically renew for successive twelve (12) month
+terms unless either party provides written notice of non-renewal at
+least fifteen (15) days prior to the end of the then-current term.
+
+3. TERMINATION. Either party may terminate this Agreement for material
+breach if such breach is not cured within thirty (30) days of written
+notice. Customer may not terminate this Agreement for convenience during
+the initial or any renewal term.
+
+4. DATA. Vendor may process Customer Data solely to provide the Services.
+Vendor may also use aggregated, de-identified Customer Data to improve
+Vendor's products and services, including for training Vendor's internal
+machine learning models. Upon termination, Vendor will delete Customer
+Data within ninety (90) days upon Customer's written request.
+
+5. LIMITATION OF LIABILITY. IN NO EVENT SHALL VENDOR'S TOTAL LIABILITY
+ARISING OUT OF OR RELATED TO THIS AGREEMENT EXCEED THE FEES PAID BY
+CUSTOMER IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM, EXCEPT FOR
+CLAIMS ARISING FROM VENDOR'S GROSS NEGLIGENCE, WILLFUL MISCONDUCT, OR
+BREACH OF CONFIDENTIALITY OBLIGATIONS, FOR WHICH VENDOR'S LIABILITY
+SHALL BE UNCAPPED.
+
+6. GENERAL. This Agreement is governed by the laws of the State of
+Delaware.`;
+
+  const DEFAULT_PLAYBOOK = {
+    liability: "Liability should be capped at 12 months of fees paid. Uncapped or unusually high liability caps are high risk.",
+    auto_renewal: "Auto-renewal terms must include at least 30 days advance notice before renewal. Silent/evergreen renewal with no notice is high risk.",
+    data_handling: "Vendor must not use company data for their own model training or resell it, and must support data deletion within 30 days of termination.",
+    termination: "Company must be able to terminate for convenience with 60 days notice or less. Long lock-in periods are high risk.",
+  };
+
+  document.getElementById('contract-text').value = DEFAULT_CONTRACT;
+  document.getElementById('pb-liability').value = DEFAULT_PLAYBOOK.liability;
+  document.getElementById('pb-auto-renewal').value = DEFAULT_PLAYBOOK.auto_renewal;
+  document.getElementById('pb-data-handling').value = DEFAULT_PLAYBOOK.data_handling;
+  document.getElementById('pb-termination').value = DEFAULT_PLAYBOOK.termination;
+
+  const runBtn = document.getElementById('run-btn');
+  const statusEl = document.getElementById('status');
+  const resultsEl = document.getElementById('results');
+
+  async function runReview() {
+    const contractText = document.getElementById('contract-text').value.trim();
+    const apiBase = document.getElementById('api-base').value.trim().replace(/\/$/, '');
+    const playbook = {
+      liability: document.getElementById('pb-liability').value.trim(),
+      auto_renewal: document.getElementById('pb-auto-renewal').value.trim(),
+      data_handling: document.getElementById('pb-data-handling').value.trim(),
+      termination: document.getElementById('pb-termination').value.trim(),
+    };
+
+    if (contractText.length < 200) {
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Paste in more contract text (at least ~200 characters).';
+      return;
+    }
+
+    runBtn.disabled = true;
+    statusEl.className = 'status';
+    statusEl.textContent = 'Running multi-agent review, may take 20-40s...';
+    resultsEl.style.display = 'none';
+
+    try {
+      const resp = await fetch(`${apiBase}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contract_text: contractText,
+          playbook: playbook,
+          categories: ['liability', 'auto_renewal', 'data_handling', 'termination'],
+        }),
+      });
+      if (!resp.ok) throw new Error(`Request failed: ${resp.status} ${await resp.text()}`);
+      const data = await resp.json();
+      renderReport(data);
+      statusEl.textContent = 'Done.';
+    } catch (err) {
+      statusEl.className = 'status error';
+      statusEl.textContent = `${err.message}. Is the backend running (uvicorn main:app --reload)?`;
+    } finally {
+      runBtn.disabled = false;
+    }
+  }
+
+  function renderReport(data) {
+    const report = data.report;
+
+    document.getElementById('summary').textContent = report.contract_summary;
+
+    const overallEl = document.getElementById('overall-badge');
+    overallEl.textContent = `Overall risk: ${report.overall_risk_level}`;
+    overallEl.className = `overall-badge ${report.overall_risk_level}`;
+
+    const flagsEl = document.getElementById('flags');
+    flagsEl.innerHTML = '';
+    report.risk_flags.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'flag-card';
+      card.innerHTML = `
+        <div class="stamp-badge ${f.risk_level}">${f.risk_level.replace('_', ' ')}</div>
+        <h3>${f.category.replace('_', ' ')}</h3>
+        <p class="rationale">${f.rationale}</p>
+        <div class="ref">playbook: ${f.playbook_reference}</div>
+      `;
+      flagsEl.appendChild(card);
+    });
+
+    const actionsEl = document.getElementById('actions');
+    actionsEl.innerHTML = '';
+    report.recommended_actions.forEach(a => {
+      const li = document.createElement('li');
+      li.textContent = a;
+      actionsEl.appendChild(li);
+    });
+
+    const metaEl = document.getElementById('run-meta');
+    metaEl.innerHTML = '';
+
+    const roundsSpan = document.createElement('span');
+    roundsSpan.textContent = `refinement rounds: ${data.refinement_rounds_used}`;
+    metaEl.appendChild(roundsSpan);
+
+    const cacheSpan = document.createElement('span');
+    cacheSpan.textContent = `cache: ${data.cache_hits} hit / ${data.cache_misses} fresh`;
+    metaEl.appendChild(cacheSpan);
+
+    if (data.audited) {
+      const auditSpan = document.createElement('span');
+      auditSpan.className = data.report_corrected ? 'corrected' : 'audited-yes';
+      auditSpan.textContent = data.report_corrected
+        ? 'audited: corrected by judge'
+        : 'audited: passed';
+      metaEl.appendChild(auditSpan);
+    }
+
+    resultsEl.style.display = 'block';
+  }
+
+  runBtn.addEventListener('click', runReview);
+</script>
+</body>
+</html>

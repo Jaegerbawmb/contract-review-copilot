@@ -35,7 +35,10 @@ class ReviewResponse(BaseModel):
 def health():
     return {"status": "ok"}
 
-
+@app.get("/")
+def serve_frontend():
+    return FileResponse("index.html")
+    
 @app.post("/review", response_model=ReviewResponse)
 def review(req: ReviewRequest):
     if len(req.contract_text.strip()) < 200:

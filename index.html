@@ -316,7 +316,7 @@ footer.meta {
     </details>
 
     <label for="api-base" style="margin-top:1.4rem;">Backend URL</label>
-    <input type="text" id="api-base" value="http://localhost:8000" />
+    <input type="text" id="api-base" value="" />
 
     <div class="run-row">
       <button class="stamp" id="run-btn">Run review</button>
@@ -344,6 +344,7 @@ footer.meta {
   document.getElementById('dateline').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
+  document.getElementById('api-base').value = window.location.origin;
 
   const DEFAULT_CONTRACT = `MASTER SERVICES AGREEMENT
 
